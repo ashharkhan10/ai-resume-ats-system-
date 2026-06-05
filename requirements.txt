@@ -1,5 +1,3 @@
-tree /f# ATS Resume Scorer — combined backend + frontend dependencies.
-#
 # Install with:
 #     pip install -r requirements.txt
 #
