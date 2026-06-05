@@ -1,0 +1,30 @@
+# Secrets
+.env
+frontend/.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environment
+venv/
+
+# Logs
+*.log
+
+# ML models
+*.safetensors
+*.pkl
+
+# Datasets
+*.csv
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
