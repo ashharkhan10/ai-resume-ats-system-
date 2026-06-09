@@ -1,5 +1,10 @@
 import io
-import magic
+try:
+    import magic
+    MAGIC_AVAILABLE = True
+except Exception:
+    MAGIC_AVAILABLE = False
+
 from typing import Tuple, Optional, Tuple
 
 import pdfplumber
@@ -37,25 +42,31 @@ def validate_file(file_data:bytes, filename:str)->Tuple[bool, str, Optional[str]
             'Please upload a smaller file or compress your resume.'
         ), None
     
-    if file_size_bytes==0:
-        return False, 'uploade file is empty...please check the file you have uploaded and try again'
+    if file_size_bytes == 0:
+        return False, 'uploaded file is empty. Please check the file and try again.', None
     
     try:
-       mime_type = magic.from_buffer(file_data, mime=True)
+        if not MAGIC_AVAILABLE:
+            raise Exception("magic not available")
+        mime_type = magic.from_buffer(file_data, mime=True)
     except Exception as e:
-    # Fallback: detect mime type from filename extension
-       ext = filename.lower().rsplit('.', 1)[-1]
-       ext_to_mime = {
-           'pdf': 'application/pdf',
-           'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-           'doc': 'application/msword',
+        ext = filename.lower().rsplit('.', 1)[-1]
+        ext_to_mime = {
+            'pdf': 'application/pdf',
+            'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'doc': 'application/msword',
         }
         if ext in ext_to_mime:
             mime_type = ext_to_mime[ext]
         else:
             return False, f"Could not determine file type: {e}", None
-    
-    
+
+    if mime_type not in SUPPORTED_MIME_TYPES:
+        supported = ', '.join(SUPPORTED_MIME_TYPES.keys()).upper()
+        return False, (
+            f'Unsupported file type: {mime_type}. '
+            f'Please upload one of: {supported}.'
+        ), None
 
     return True, '', SUPPORTED_MIME_TYPES[mime_type]
 
