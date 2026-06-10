@@ -98,13 +98,15 @@ def google_oauth_url() -> Dict[str, Any]:
     try:
         resp = get_client().auth.sign_in_with_oauth({
             'provider': 'google',
-            'options': {'redirect_to': OAUTH_REDIRECT_URL},
+            'options': {
+                'redirect_to': OAUTH_REDIRECT_URL,
+                'skip_browser_redirect': True,
+            },
         })
         return {'url': resp.url}
     except Exception as exc:
         logger.warning(f'oauth url generation failed: {exc}')
         return {'error': _humanize(exc)}
-
 
 def exchange_code_for_session(auth_code: str) -> Dict[str, Any]:
     """Called once after the OAuth provider redirects back with `?code=...`."""
