@@ -1,4 +1,4 @@
-# 🎯 AI Resume ATS Scorer
+#  AI Resume ATS Scorer
 
 An AI-powered Applicant Tracking System (ATS) resume analyzer that scores resumes, extracts insights, compares against job descriptions, and provides actionable feedback using NLP and LLMs.
 
@@ -7,20 +7,20 @@ An AI-powered Applicant Tracking System (ATS) resume analyzer that scores resume
 
 ---
 
-## ✨ Features
+##  Features
 
-- 📄 **Resume Parsing** — Extracts text from PDF and DOCX resumes (with hyperlink detection)
-- 🎯 **ATS Scoring** — Comprehensive scoring engine evaluating resume quality
-- 🤖 **AI-Powered Feedback** — Personalized suggestions generated via Groq LLM
-- 🔍 **JD Comparison** — Semantic similarity matching between resume and job description using Sentence Transformers
-- 🧠 **NLP Analysis** — Keyword extraction, skill validation, and grammar checking powered by spaCy
-- 📊 **History Tracking** — Stores past analyses per user
-- 📥 **PDF Reports** — Downloadable analysis reports (via WeasyPrint)
-- 🔐 **Authentication** — Secure email/password auth via Supabase
+-  **Resume Parsing** — Extracts text from PDF and DOCX resumes (with hyperlink detection)
+-  **ATS Scoring** — Comprehensive scoring engine evaluating resume quality
+-  **AI-Powered Feedback** — Personalized suggestions generated via Groq LLM
+-  **JD Comparison** — Semantic similarity matching between resume and job description using Sentence Transformers
+-  **NLP Analysis** — Keyword extraction, skill validation, and grammar checking powered by spaCy
+-  **History Tracking** — Stores past analyses per user
+-  **PDF Reports** — Downloadable analysis reports (via WeasyPrint)
+-  **Authentication** — Secure email/password auth via Supabase
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -36,7 +36,7 @@ An AI-powered Applicant Tracking System (ATS) resume analyzer that scores resume
 
 ---
 
-## 📂 Project Structure
+##  Project Structure
 
 ```
 ai-resume-ats-main/
@@ -75,7 +75,7 @@ ai-resume-ats-main/
 
 ---
 
-## 🚀 Getting Started (Local Setup)
+##  Getting Started (Local Setup)
 
 ### Prerequisites
 - Python 3.12
@@ -124,7 +124,7 @@ The app will be available at `http://localhost:8501` and the backend at `http://
 
 ---
 
-## 🔌 API Endpoints
+##  API Endpoints
 
 | Method | Endpoint | Description |
 |---|---|---|
@@ -136,7 +136,7 @@ The app will be available at `http://localhost:8501` and the backend at `http://
 
 ---
 
-## 🐳 Deployment
+##  Deployment
 
 ### Backend (Hugging Face Spaces)
 The backend is containerized using Docker and deployed to Hugging Face Spaces.
@@ -162,7 +162,7 @@ git push space main
 
 ---
 
-## 🧩 Known Issues / Roadmap
+##  Known Issues / Roadmap
 
 - [ ] Google OAuth sign-in (PKCE flow incompatible with Streamlit reruns — currently disabled)
 - [ ] TXT summary download is incomplete
@@ -170,13 +170,13 @@ git push space main
 
 ---
 
-## 📜 License
+##  License
 
 This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
-## 🙋 Author
+##  Author
 
 **Ashhar Khan**
 GitHub: [@ashharkhan10](https://github.com/ashharkhan10)
