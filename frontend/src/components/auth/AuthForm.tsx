@@ -28,7 +28,9 @@ export function AuthForm({ mode }: Props) {
     try {
       const reply = isLogin ? await login(email, password) : await register(name, email, password);
       saveLogin(reply.token, reply.user);
-      router.push("/versions");
+      // Go back to the page that sent us here (e.g. /analyze), or to the checker.
+      const next = new URLSearchParams(window.location.search).get("next");
+      router.push(next?.startsWith("/") ? next : "/analyze");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {

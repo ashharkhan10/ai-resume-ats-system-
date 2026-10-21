@@ -1,10 +1,10 @@
 "use client";
 /**
  * Analyze page ( /analyze ): upload → wait → open the saved report at /report/<id>.
+ * You must be logged in — otherwise you're sent to the login page first.
  */
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { UploadBox } from "@/components/analyze/UploadBox";
 import { TargetPicker, type TargetMode } from "@/components/analyze/TargetPicker";
@@ -22,6 +22,11 @@ export default function AnalyzePage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Not logged in → go to login, then come back here.
+  useEffect(() => {
+    if (ready && !user) router.replace("/login?next=/analyze");
+  }, [ready, user, router]);
 
   async function handleAnalyze() {
     if (!file) return;
@@ -46,7 +51,7 @@ export default function AnalyzePage() {
       <Header />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-16">
-        {loading ? (
+        {!user ? null : loading ? (
           <AnalyzingSteps />
         ) : (
           <div className="mx-auto flex max-w-2xl flex-col gap-6">
@@ -71,15 +76,6 @@ export default function AnalyzePage() {
                 onRoleChange={setRole}
               />
             </section>
-
-            {ready && !user && (
-              <p className="rounded-xl bg-brand-soft p-4 text-sm text-brand-dark">
-                <Link href="/login" className="font-semibold underline">
-                  Log in
-                </Link>{" "}
-                to save every version and track your score over time.
-              </p>
-            )}
 
             {error && <p className="rounded-xl bg-bad-soft p-4 font-medium text-bad-ink">{error}</p>}
 
