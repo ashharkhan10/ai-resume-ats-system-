@@ -3,6 +3,7 @@
  * Analyze page ( /analyze ): upload → wait → open the saved report at /report/<id>.
  * You must be logged in — otherwise you're sent to the login page first.
  */
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Header } from "@/components/layout/Header";
@@ -24,9 +25,10 @@ export default function AnalyzePage() {
   const [error, setError] = useState<string | null>(null);
 
   // Not logged in → go to login, then come back here.
+  // (If the redirect is slow or blocked, the "Log in first" card below is shown.)
   useEffect(() => {
-    if (ready && !user) router.replace("/login?next=/analyze");
-  }, [ready, user, router]);
+    if (ready && !user) window.location.replace("/login?next=/analyze");
+  }, [ready, user]);
 
   async function handleAnalyze() {
     if (!file) return;
@@ -51,7 +53,9 @@ export default function AnalyzePage() {
       <Header />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-16">
-        {!user ? null : loading ? (
+        {!ready ? null : !user ? (
+          <LoginFirst />
+        ) : loading ? (
           <AnalyzingSteps />
         ) : (
           <div className="mx-auto flex max-w-2xl flex-col gap-6">
@@ -86,5 +90,23 @@ export default function AnalyzePage() {
         )}
       </main>
     </>
+  );
+}
+
+function LoginFirst() {
+  return (
+    <div className="mx-auto flex max-w-md flex-col items-center gap-4 rounded-3xl border border-line bg-surface p-10 text-center">
+      <span className="text-4xl">🔒</span>
+      <h1 className="font-display text-2xl font-extrabold">Log in to check your resume</h1>
+      <p className="text-muted">Your reports are saved to your account so you can track every version.</p>
+      <div className="flex gap-2">
+        <Link href="/login?next=/analyze" className="btn btn-primary">
+          Log in
+        </Link>
+        <Link href="/register" className="btn btn-outline">
+          Sign up
+        </Link>
+      </div>
+    </div>
   );
 }
