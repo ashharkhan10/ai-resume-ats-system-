@@ -68,7 +68,7 @@ ai-resume-ats/
 │       ├── app/             pages: /, /analyze, /report/[id], /share/[id], /versions, /login, /register
 │       ├── components/      landing, analyze, results, versions, auth, layout, ui
 │       └── lib/             api client, auth, helpers (+ tests)
-└── github/workflows/ci.yml  move to .github/workflows/ (see below)
+└── .github/workflows/ci.yml tests both apps, then deploys the backend
 ```
 
 ## Run it locally
