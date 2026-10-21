@@ -54,9 +54,9 @@ def test_others_cannot_see_my_report(client):
     assert client.get(f"/analyses/{mine['id']}").status_code == 404
 
 
-def test_anonymous_report_opens_with_its_id(client):
-    report = upload(client)
-    assert client.get(f"/analyses/{report['id']}").status_code == 200
+def test_analyze_needs_login(client):
+    files = {"resume": ("cv.pdf", b"fake pdf", "application/pdf")}
+    assert client.post("/analyze", files=files).status_code == 401
 
 
 def test_delete_version(client):
@@ -93,10 +93,11 @@ def test_interview_prep_is_saved_after_first_call(client, monkeypatch):
         return {"questions": [{"type": "Project", "question": "Tell me about Event Portal.", "why": "x", "tip": "y"}]}
 
     monkeypatch.setattr(llm, "ask_ai_json", fake_ai)
-    report = upload(client)
+    headers = sign_up(client)
+    report = upload(client, headers)
 
-    first = client.post(f"/analyses/{report['id']}/interview").json()
-    second = client.post(f"/analyses/{report['id']}/interview").json()
+    first = client.post(f"/analyses/{report['id']}/interview", headers=headers).json()
+    second = client.post(f"/analyses/{report['id']}/interview", headers=headers).json()
     assert first == second
     assert first["questions"][0]["question"] == "Tell me about Event Portal."
     assert len(calls) == 1  # second time came from the database
@@ -104,9 +105,10 @@ def test_interview_prep_is_saved_after_first_call(client, monkeypatch):
 
 def test_cover_letter_per_tone(client, monkeypatch):
     monkeypatch.setattr(llm, "ask_ai_json", lambda s, u, max_tokens=3000: {"letter": f"Dear Hiring Manager, {u[:20]}"})
-    report = upload(client)
+    headers = sign_up(client)
+    report = upload(client, headers)
 
-    letter = client.post(f"/analyses/{report['id']}/cover-letter", json={"tone": "friendly"}).json()
+    letter = client.post(f"/analyses/{report['id']}/cover-letter", json={"tone": "friendly"}, headers=headers).json()
     assert letter["tone"] == "friendly"
     assert letter["text"].startswith("Dear Hiring Manager")
 
@@ -116,7 +118,8 @@ def test_ai_failure_gives_friendly_error(client, monkeypatch):
         raise llm.AIUnavailable("down")
 
     monkeypatch.setattr(llm, "ask_ai_json", broken)
-    report = upload(client)
-    response = client.post(f"/analyses/{report['id']}/interview")
+    headers = sign_up(client)
+    report = upload(client, headers)
+    response = client.post(f"/analyses/{report['id']}/interview", headers=headers)
     assert response.status_code == 502
     assert "try again" in response.json()["detail"]

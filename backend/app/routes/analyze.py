@@ -5,14 +5,14 @@ Steps:
   1. pull text out of the file         (text_extraction.py)
   2. one AI call to understand it      (ai_reader.py)
   3. score it and build the report     (analyzer.py)
-  4. save it (linked to the account if logged in)
+  4. save it to your account (login required)
 """
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.deps import get_optional_user
+from app.deps import get_current_user
 from app.models import User
 from app.schemas.analysis import AnalysisReport, TargetKind
 from app.services.ai_reader import ReadingFailed, read_with_ai
@@ -29,7 +29,7 @@ def analyze(  # plain "def": FastAPI runs it in a thread, so slow AI calls don't
     resume: UploadFile = File(..., description="PDF or DOCX, max 5 MB"),
     job_description: str = Form(""),
     target_role: str = Form(""),
-    user: User | None = Depends(get_optional_user),
+    user: User = Depends(get_current_user),  # you must be logged in
     db: Session = Depends(get_db),
 ):
     try:
