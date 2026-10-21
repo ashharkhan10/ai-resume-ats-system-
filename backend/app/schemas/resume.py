@@ -78,6 +78,25 @@ class TargetData(Lenient):
     preferred_skills: list[str] = []
 
 
+class Fit(Lenient):
+    """
+    How well the person's background fits the target job or role.
+    score is None when there is no target (or the AI didn't answer).
+    """
+
+    score: int | None = None  # 0–100
+    verdict: str = ""  # one honest sentence
+    gaps: list[str] = []  # the biggest things missing for this role
+
+    @field_validator("score", mode="before")
+    @classmethod
+    def clamp(cls, value):
+        try:
+            return max(0, min(100, int(value)))
+        except (TypeError, ValueError):
+            return None
+
+
 class Rewrite(Lenient):
     before: str
     after: str
@@ -89,5 +108,6 @@ class AIReading(Lenient):
 
     resume: ResumeData
     target: TargetData = TargetData()
+    fit: Fit = Fit()
     rewrites: list[Rewrite] = []
     strengths: list[str] = []

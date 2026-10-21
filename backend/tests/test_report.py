@@ -5,6 +5,7 @@ Tests for the full report (scoring + issues) and the AI reader — without a rea
 import app.services.ai_reader as ai_reader
 from app.services.ai_reader import ReadingFailed, build_message, read_with_ai
 from app.services.analyzer import build_report
+from app.schemas.resume import Fit
 from app.services.llm import AIUnavailable
 from tests.sample import SAMPLE_TEXT, sample_reading
 
@@ -16,7 +17,10 @@ def test_report_with_a_job():
     assert 0 <= report.score <= 100
     assert report.target.title == "Frontend Developer"
     assert report.keywords.missing == ["TypeScript"]
-    assert [c.id for c in report.categories] == ["keywords", "content", "formatting", "skill_proof", "ats_friendly"]
+    assert [c.id for c in report.categories] == [
+        "keywords", "role_fit", "content", "formatting", "skill_proof", "ats_friendly"
+    ]
+    assert sum(c.weight for c in report.categories) == 100
     assert report.stats.bullets == 3
     assert report.stats.quantified_bullets == 2
 
@@ -24,6 +28,33 @@ def test_report_with_a_job():
 def test_report_without_a_target_has_no_keywords():
     report = build_report(SAMPLE_TEXT, sample_reading(), "none")
     assert report.keywords is None
+    assert report.fit is None
+    assert "role_fit" not in [c.id for c in report.categories]
+
+
+def test_wrong_field_resume_scores_low():
+    """A good frontend resume checked against Product Manager must NOT score high."""
+    reading = sample_reading(
+        title="Product Manager",
+        required_skills=["Product roadmapping", "User research", "A/B testing", "Stakeholder management", "SQL"],
+    )
+    reading.fit = Fit(score=15, verdict="Frontend developer with no product experience.",
+                      gaps=["No product management experience"])
+    report = build_report(SAMPLE_TEXT, reading, "role")
+
+    assert report.score <= 40
+    assert report.rating == "Needs work"
+    assert "isn't a match for Product Manager" in report.summary
+    assert report.issues[0].id == "role_mismatch"
+    assert "No product management experience" in report.issues[0].detail
+
+
+def test_good_fit_resume_is_not_capped():
+    reading = sample_reading(title="Frontend Developer", required_skills=["React", "Node.js", "HTML", "CSS"])
+    reading.fit = Fit(score=85)
+    report = build_report(SAMPLE_TEXT, reading, "job")
+    assert report.score >= 70
+    assert "role_mismatch" not in [i.id for i in report.issues]
 
 
 def test_issues_are_ordered_high_first():

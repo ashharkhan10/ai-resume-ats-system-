@@ -8,6 +8,8 @@ export type KeywordMatch = { matched: string[]; missing: string[]; match_pct: nu
 export type SkillProof = { name: string; proof: string | null };
 export type Issue = { id: string; level: Level; title: string; detail: string };
 export type Rewrite = { before: string; after: string; why: string };
+/** How well the background fits the target role (null when there's no target). */
+export type RoleFit = { score: number | null; verdict: string; gaps: string[] };
 
 export type AnalysisReport = {
   score: number;
@@ -16,6 +18,7 @@ export type AnalysisReport = {
   target: { kind: "job" | "role" | "none"; title: string };
   categories: CategoryScore[];
   keywords: KeywordMatch | null;
+  fit?: RoleFit | null;
   skills: SkillProof[];
   issues: Issue[];
   rewrites: Rewrite[];

@@ -1,11 +1,28 @@
 """
-Combines the five category scores into one overall score (0–100).
+Combines the category scores into one overall score (0–100).
+
+Two sets of weights:
+  - with a job or role: being RELEVANT matters most (keywords + role fit = 60%)
+  - without a target: only general resume quality is judged
+
+Relevance cap: a well-written resume for the wrong field must still score low.
+So with a target, the overall score can't go above 25 + 0.75 × relevance,
+where relevance = average of keyword match and role fit.
+  e.g. relevance 20 → max 40,  relevance 60 → max 70,  relevance 100 → max 100
 """
 
 from app.schemas.analysis import CategoryScore
 
-# How much each category counts. They add up to 100.
-WEIGHTS = {
+WEIGHTS_WITH_TARGET = {
+    "keywords": 35,
+    "role_fit": 25,
+    "content": 15,
+    "formatting": 10,
+    "skill_proof": 5,
+    "ats_friendly": 10,
+}
+
+WEIGHTS_NO_TARGET = {
     "keywords": 30,
     "content": 25,
     "formatting": 15,
@@ -15,11 +32,15 @@ WEIGHTS = {
 
 LABELS = {
     "keywords": "Keywords",
+    "role_fit": "Role fit",
     "content": "Content",
     "formatting": "Formatting",
     "skill_proof": "Skill proof",
     "ats_friendly": "ATS friendly",
 }
+
+CAP_BASE = 25
+CAP_PER_RELEVANCE = 0.75
 
 # (lowest score, rating, one-line summary)
 RATINGS = [
@@ -29,17 +50,23 @@ RATINGS = [
     (0, "Needs work", "Important gaps — start with the high-priority fixes below."),
 ]
 
+MISMATCH_SUMMARY = "This resume isn't a match for {title} yet — see the gaps below."
 
-def build_categories(scores: dict[str, int]) -> list[CategoryScore]:
+
+def build_categories(scores: dict[str, int], has_target: bool) -> list[CategoryScore]:
+    weights = WEIGHTS_WITH_TARGET if has_target else WEIGHTS_NO_TARGET
     return [
         CategoryScore(id=key, label=LABELS[key], score=scores[key], weight=weight)
-        for key, weight in WEIGHTS.items()
+        for key, weight in weights.items()
     ]
 
 
-def overall_score(categories: list[CategoryScore]) -> int:
+def overall_score(categories: list[CategoryScore], relevance: int | None = None) -> int:
     total = sum(c.score * c.weight for c in categories)
-    return round(total / sum(c.weight for c in categories))
+    score = round(total / sum(c.weight for c in categories))
+    if relevance is not None:
+        score = min(score, round(CAP_BASE + CAP_PER_RELEVANCE * relevance))
+    return score
 
 
 def rate(score: int) -> tuple[str, str]:

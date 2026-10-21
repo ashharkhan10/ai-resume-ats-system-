@@ -6,7 +6,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-from app.schemas.resume import Rewrite
+from app.schemas.resume import Fit, Rewrite
 
 Level = Literal["High", "Medium", "Low"]
 TargetKind = Literal["job", "role", "none"]
@@ -55,6 +55,7 @@ class AnalysisReport(BaseModel):
     target: Target
     categories: list[CategoryScore]
     keywords: KeywordMatch | None  # None when there's no job or role
+    fit: Fit | None = None  # how well the background fits the role (None without a target)
     skills: list[SkillProof]
     issues: list[Issue]
     rewrites: list[Rewrite]

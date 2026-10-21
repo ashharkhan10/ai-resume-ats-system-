@@ -37,6 +37,11 @@ Read the resume (and the job, if given) and reply with JSON ONLY, in exactly thi
     "required_skills": ["must-have skills and tools, short names like 'React', 'SQL'"],
     "preferred_skills": ["nice-to-have skills"]
   },
+  "fit": {
+    "score": 0,
+    "verdict": "one honest sentence on how well this candidate fits the target",
+    "gaps": ["the 2-4 most important things missing for this target"]
+  },
   "rewrites": [{"before": "a weak bullet copied exactly", "after": "the improved bullet", "why": "short reason"}],
   "strengths": ["short, specific things this resume does well"]
 }
@@ -47,8 +52,19 @@ Rules:
 - rewrites: pick the 3-5 weakest bullets. Make each "after" start with a strong action verb,
   stay truthful to the original, and add a measurable result using a placeholder like
   [X%] or [N users] when the original has no number.
-- strengths: 2-4 items, each under 12 words.
-- target: if no job or role is given, leave it empty."""
+- strengths: 2-4 items, each under 12 words. If there is a target, only list strengths that matter for it.
+- target.required_skills: 8-12 hard skills, tools, methods or domain knowledge the target needs
+  (e.g. 'Product roadmapping', 'A/B testing', 'SQL'). NOT soft skills like communication or teamwork.
+- fit.score: judge like a strict recruiter. Look at the degree, past roles, projects and skills
+  - is this person a credible candidate for the target TODAY?
+    0-25: different field, almost nothing relevant
+    26-50: some transferable skills, but the core experience for this role is missing
+    51-75: relevant background with a few clear gaps
+    76-100: strong, directly relevant experience
+  A resume from another field (e.g. electronics for a product manager role) must score low.
+- fit.gaps: concrete, e.g. "No product or user-research experience", not vague advice.
+- If there is a target, rewrites should make bullets more relevant to it, but stay truthful.
+- target and fit: if no job or role is given, leave them empty."""
 
 
 class ReadingFailed(Exception):

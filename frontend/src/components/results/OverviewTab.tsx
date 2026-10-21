@@ -1,8 +1,8 @@
 /**
- * OverviewTab — what to fix (by priority), what's already good, and quick stats.
+ * OverviewTab — role fit, what to fix (by priority), what's already good, and quick stats.
  */
-import type { AnalysisReport } from "@/lib/types";
-import { levelClasses } from "@/lib/score";
+import type { AnalysisReport, RoleFit } from "@/lib/types";
+import { levelClasses, scoreColor } from "@/lib/score";
 
 export function OverviewTab({ report }: { report: AnalysisReport }) {
   const { issues, strengths, stats } = report;
@@ -31,6 +31,8 @@ export function OverviewTab({ report }: { report: AnalysisReport }) {
       </section>
 
       <div className="flex flex-col gap-6">
+        {report.fit && report.fit.score !== null && <RoleFitCard fit={report.fit} title={report.target.title} />}
+
         {strengths.length > 0 && (
           <section className="rounded-3xl border border-line bg-surface p-6">
             <h2 className="mb-3 text-lg font-bold">What&apos;s working</h2>
@@ -61,5 +63,30 @@ function Stat({ value, label }: { value: number; label: string }) {
       <p className="font-display text-2xl font-extrabold">{value}</p>
       <p className="text-xs text-subtle">{label}</p>
     </div>
+  );
+}
+
+function RoleFitCard({ fit, title }: { fit: RoleFit; title: string }) {
+  const score = fit.score ?? 0;
+  return (
+    <section className="rounded-3xl border border-line bg-surface p-6">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="text-lg font-bold">Fit for {title || "this role"}</h2>
+        <span className="font-display text-2xl font-extrabold" style={{ color: scoreColor(score) }}>
+          {score}%
+        </span>
+      </div>
+      {fit.verdict && <p className="text-sm text-muted">{fit.verdict}</p>}
+      {fit.gaps.length > 0 && (
+        <ul className="mt-3 flex flex-col gap-1.5 text-sm">
+          {fit.gaps.map((gap) => (
+            <li key={gap} className="flex gap-2">
+              <span className="text-bad-ink">✕</span>
+              {gap}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }

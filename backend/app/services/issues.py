@@ -4,12 +4,16 @@ ordered High → Medium → Low.
 """
 
 from app.schemas.analysis import Issue, KeywordMatch, SkillProof
-from app.schemas.resume import ResumeData
+from app.schemas.resume import Fit, ResumeData
 from app.services.scoring.ats_friendly import IDEAL_MAX_WORDS, IDEAL_MIN_WORDS
 from app.services.scoring.content import is_quantified, starts_with_action_verb
 from app.services.scoring.formatting import MIN_SKILLS
 
 LEVEL_ORDER = {"High": 0, "Medium": 1, "Low": 2}
+
+# Role fit below this is a serious problem; below MEDIUM_FIT it's worth a warning.
+LOW_FIT = 50
+MEDIUM_FIT = 70
 
 
 def _list(items: list[str], limit: int = 5) -> str:
@@ -22,10 +26,24 @@ def build_issues(
     text: str,
     keywords: KeywordMatch | None,
     proofs: list[SkillProof],
+    fit: Fit | None = None,
+    target_title: str = "",
 ) -> list[Issue]:
     issues: list[Issue] = []
     bullets = resume.all_bullets()
     words = len(text.split())
+    role = target_title or "this role"
+
+    if fit and fit.score is not None and fit.score < MEDIUM_FIT:
+        gaps = f" Biggest gaps: {'; '.join(fit.gaps[:4])}." if fit.gaps else ""
+        issues.append(Issue(
+            id="role_mismatch",
+            level="High" if fit.score < LOW_FIT else "Medium",
+            title=f"Your background is a weak fit for {role}" if fit.score < LOW_FIT
+            else f"Some key experience for {role} is missing",
+            detail=(fit.verdict.strip() + gaps).strip()
+            or f"Add projects or experience that show you can do the work of a {role}.",
+        ))
 
     if not resume.email.strip():
         issues.append(Issue(id="no_email", level="High", title="No email address found",
