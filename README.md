@@ -1,182 +1,112 @@
-#  AI Resume ATS Scorer
+# AI Resume ATS
 
-An AI-powered Applicant Tracking System (ATS) resume analyzer that scores resumes, extracts insights, compares against job descriptions, and provides actionable feedback using NLP and LLMs.
+**Check your resume like an applicant tracking system does — then fix it with AI.**
+Built for students and fresh graduates.
 
-🔗 **Live App:** [ai-resume-ats.streamlit.app](https://ai-resume-ats.streamlit.app)
-🔗 **Backend API:** [ashharr-ats-backend.hf.space](https://ashharr-ats-backend.hf.space)
-
----
-
-##  Features
-
--  **Resume Parsing** — Extracts text from PDF and DOCX resumes (with hyperlink detection)
--  **ATS Scoring** — Comprehensive scoring engine evaluating resume quality
--  **AI-Powered Feedback** — Personalized suggestions generated via Groq LLM
--  **JD Comparison** — Semantic similarity matching between resume and job description using Sentence Transformers
--  **NLP Analysis** — Keyword extraction, skill validation, and grammar checking powered by spaCy
--  **History Tracking** — Stores past analyses per user
--  **PDF Reports** — Downloadable analysis reports (via WeasyPrint)
--  **Authentication** — Secure email/password auth via Supabase
+🔗 **Live:** https://ai-resume-ats.vercel.app  ·  **API:** https://ashharr-ats-backend.hf.space/docs
 
 ---
 
-##  Tech Stack
+## Features
 
-| Layer | Technology |
+| | |
 |---|---|
-| Frontend | Streamlit |
-| Backend | FastAPI |
-| NLP | spaCy, Sentence Transformers |
-| LLM | Groq API |
-| Auth & DB | Supabase |
-| File Parsing | pdfplumber, PyPDF2, python-docx |
-| PDF Reports | WeasyPrint, Jinja2 |
-| CI/CD | GitHub Actions |
-| Hosting | Hugging Face Spaces (backend), Streamlit Cloud (frontend) |
+| 📊 **ATS score** | One score out of 100 from 5 categories: keywords, content, formatting, skill proof, ATS-friendliness |
+| 🎯 **Job match** | Paste a job description — see matched and missing keywords |
+| 🧭 **Target role mode** | No job post? Pick one of 16 roles (Frontend, Data Analyst, ML Engineer, …) |
+| ✍️ **AI bullet rewriter** | Weak bullets rewritten with strong verbs and measurable results |
+| 💬 **Interview prep** | Likely questions made from *your* projects, with tips on answering |
+| ✉️ **Cover letter** | Tailored letter in 3 tones — edit and copy |
+| 📈 **Version tracking** | Every check is saved; see your score trend and compare two versions |
+| 🔗 **Share link** | Send a read-only report to a mentor or friend |
+| ⬇️ **PDF download** | Save the full report as a PDF |
+| 🔐 **Accounts** | Email + password login (JWT, Argon2 hashing) |
 
----
+## Tech stack
 
-##  Project Structure
+- **Frontend:** Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4, Vitest — on **Vercel**
+- **Backend:** FastAPI, Pydantic v2, SQLAlchemy, pytest — on **Hugging Face Spaces** (Docker)
+- **Database:** PostgreSQL on **Supabase** (JSONB for saved reports)
+- **AI:** Groq (`openai/gpt-oss-120b`)
+- **CI/CD:** GitHub Actions — tests both apps, then deploys the backend
+
+## How it works
 
 ```
-ai-resume-ats-main/
-├── backend/
-│   ├── main.py                  # FastAPI app entrypoint
-│   ├── core/
-│   │   └── config.py            # App configuration & constants
-│   ├── services/
-│   │   ├── resume_parser.py     # File parsing & text extraction
-│   │   ├── ats_scorer.py        # ATS scoring logic
-│   │   ├── feedback_engine.py   # AI feedback generation
-│   │   ├── groq_parser.py       # Groq LLM integration
-│   │   ├── jd_matcher.py        # Job description comparison
-│   │   ├── pdf_export.py        # PDF report generation
-│   │   ├── recommendation_engine.py
-│   │   ├── report_generator.py
-│   │   └── resume_analyzer.py
-│   └── utils/
-│       └── file_utils.py        # Logging & error handling utilities
-├── frontend/
-│   ├── streamlit_app.py         # Streamlit app entrypoint
-│   ├── services/
-│   │   ├── api_client.py        # Backend API client
-│   │   └── supabase_client.py   # Supabase auth client
-│   ├── views/
-│   │   ├── landing.py
-│   │   ├── scorer.py
-│   │   ├── history.py
-│   │   └── resources.py
-│   └── assets/
-│       └── styles.css
-├── Dockerfile
-├── requirements.txt
-└── README.md
+Browser (Next.js) ──► POST /analyze ──► 1. extract text (pypdf / python-docx)
+                                         2. ONE AI call: read the resume + the job's skills, write rewrites
+                                         3. score it with plain Python (fast, same result every time)
+                                         4. save the report ──► PostgreSQL
 ```
 
----
+The AI only *reads* the resume. All scoring is deterministic Python, so it's fast, testable and fair.
+The old version made several slow calls and loaded heavy NLP models; this one makes a single call.
 
-##  Getting Started (Local Setup)
-
-### Prerequisites
-- Python 3.12
-- A Supabase project (URL + anon key)
-- A Groq API key
-
-### 1. Clone the repository
-```bash
-git clone https://github.com/ashharkhan10/ai-resume-ats-system-.git
-cd ai-resume-ats-system-
-```
-
-### 2. Create a virtual environment
-```bash
-python -m venv venv
-venv\Scripts\activate      # Windows
-source venv/bin/activate   # macOS/Linux
-```
-
-### 3. Install dependencies
-```bash
-pip install -r requirements.txt
-python -m spacy download en_core_web_md
-```
-
-### 4. Set up environment variables
-Create a `.env` file in the project root:
-```env
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_KEY=your_supabase_anon_key
-GROQ_API_KEY=your_groq_api_key
-```
-
-### 5. Run the backend
-```bash
-uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-### 6. Run the frontend
-```bash
-streamlit run frontend/streamlit_app.py
-```
-
-The app will be available at `http://localhost:8501` and the backend at `http://localhost:8000`.
-
----
-
-##  API Endpoints
-
-| Method | Endpoint | Description |
+| Category | Weight | What it checks |
 |---|---|---|
-| POST | `/api/v1/analyze-resume` | Analyze a resume and return ATS score & feedback |
-| GET | `/api/v1/history` | Get user's analysis history |
-| DELETE | `/api/v1/history/:id` | Delete a history entry |
-| GET | `/api/v1/health` | Health check |
-| POST | `/api/v1/generate-pdf` | Generate a PDF report from analysis data |
+| Keywords | 30 | Required (×2) and preferred skills from the job found in the resume |
+| Content | 25 | Bullets with numbers, strong action verbs, good length |
+| Formatting | 15 | Contact details, summary, skills, experience/projects, education |
+| Skill proof | 15 | Skills actually used in a project or job, not just listed |
+| ATS friendly | 15 | Length, odd characters, readable email, real bullet points |
 
----
+## Project structure
 
-##  Deployment
-
-### Backend (Hugging Face Spaces)
-The backend is containerized using Docker and deployed to Hugging Face Spaces.
-
-Required secrets on HF Spaces:
-- `SUPABASE_URL`
-- `SUPABASE_KEY`
-- `GROQ_API_KEY`
-
-### Frontend (Streamlit Community Cloud)
-Required secrets (`.streamlit/secrets.toml` or Streamlit Cloud Secrets):
-```toml
-SUPABASE_URL = "your_supabase_url"
-SUPABASE_ANON_KEY = "your_supabase_anon_key"
-AUTH_REDIRECT_URL = "https://ai-resume-ats.streamlit.app"
+```
+ai-resume-ats/
+├── backend/                 FastAPI app
+│   ├── app/
+│   │   ├── routes/          analyze, auth, analyses (versions, interview, cover letter), share
+│   │   ├── services/        text extraction, AI reader, scoring/, issues, interview, cover letter
+│   │   ├── schemas/         request & response shapes
+│   │   ├── models.py        database tables
+│   │   └── main.py          app entry point
+│   ├── tests/               pytest (no real AI calls)
+│   └── Dockerfile           for Hugging Face Spaces
+├── frontend/                Next.js app
+│   └── src/
+│       ├── app/             pages: /, /analyze, /report/[id], /share/[id], /versions, /login, /register
+│       ├── components/      landing, analyze, results, versions, auth, layout, ui
+│       └── lib/             api client, auth, helpers (+ tests)
+└── github/workflows/ci.yml  move to .github/workflows/ (see below)
 ```
 
-### CI/CD
-GitHub Actions automatically runs tests on push. Deployment to Hugging Face Spaces is done via:
+## Run it locally
+
+**Backend** (Python 3.12)
+
 ```bash
-git push space main
+cd backend
+python -m venv venv
+venv\Scripts\activate            # macOS/Linux: source venv/bin/activate
+pip install -r requirements.txt
+copy .env.example .env           # then add your GROQ_API_KEY
+pytest
+uvicorn app.main:app --reload    # http://127.0.0.1:8000/docs
 ```
 
----
+Without `DATABASE_URL` the backend uses a local SQLite file, so no database setup is needed to try it.
 
-##  Known Issues / Roadmap
+**Frontend** (Node 22)
 
-- [ ] Google OAuth sign-in (PKCE flow incompatible with Streamlit reruns — currently disabled)
-- [ ] TXT summary download is incomplete
-- [x] PDF export (WeasyPrint) — fixed by adding GTK system dependencies in Docker
+```bash
+cd frontend
+npm install
+npm test
+npm run dev                      # http://localhost:3000
+```
 
----
+## Environment variables
 
-##  License
+| Where | Name | What |
+|---|---|---|
+| Backend | `GROQ_API_KEY` | Groq API key |
+| Backend | `DATABASE_URL` | Supabase PostgreSQL URL (session pooler) |
+| Backend | `JWT_SECRET` | long random text for login tokens |
+| Backend | `FRONTEND_URL` | site(s) allowed to call the API, comma-separated |
+| Frontend | `NEXT_PUBLIC_API_URL` | backend address |
 
-This project is open source and available under the [MIT License](LICENSE).
+## Old version
 
----
-
-##  Author
-
-**Ashhar Khan**
-GitHub: [@ashharkhan10](https://github.com/ashharkhan10)
+The first version was a Streamlit app. `frontend/streamlit_app.py` now only redirects
+the old link (ai-resume-ats.streamlit.app) to the new site.

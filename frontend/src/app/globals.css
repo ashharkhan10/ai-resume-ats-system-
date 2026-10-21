@@ -1,0 +1,203 @@
+@import "tailwindcss";
+
+/*
+ * Design colours — "plum night" theme: near-black background,
+ * glassy dark cards, soft mauve/pink accents and glows.
+ * Use them as Tailwind classes: bg-ground, bg-surface, text-brand, border-line, ...
+ */
+@theme {
+  --color-ground: #0c090c; /* page background */
+  --color-surface: rgb(27 21 26 / 0.78); /* glassy cards */
+  --color-soft: rgb(255 255 255 / 0.04); /* inner panels, inputs */
+  --color-tab: rgb(0 0 0 / 0.35); /* tab tracks */
+  --color-line: rgb(255 255 255 / 0.08); /* borders */
+  --color-line-strong: rgb(255 255 255 / 0.16);
+  --color-track: rgb(255 255 255 / 0.09); /* empty part of bars and rings */
+
+  --color-ink: #f7eff5; /* main text */
+  --color-muted: #c4b6c0; /* secondary text */
+  --color-subtle: #8f818b; /* labels */
+
+  --color-brand: #c58bb6; /* mauve — main accent */
+  --color-brand-dark: #e9bcdb; /* accent text on dark tints */
+  --color-brand-soft: rgb(197 139 182 / 0.16);
+
+  --color-good: #5fd49a;
+  --color-good-soft: rgb(95 212 154 / 0.14);
+  --color-good-ink: #8be8b8;
+  --color-warn: #f0b45a;
+  --color-warn-soft: rgb(240 180 90 / 0.14);
+  --color-warn-ink: #f6cd8e;
+  --color-bad: #ff6b81;
+  --color-bad-soft: rgb(255 107 129 / 0.14);
+  --color-bad-ink: #ffa3b1;
+}
+
+/* Fonts come from layout.tsx */
+@theme inline {
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-bricolage);
+}
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-ground);
+  color: var(--color-ink);
+}
+
+::selection {
+  background: var(--color-brand);
+  color: #140f13;
+}
+
+@layer components {
+  /*
+   * Glow card — the dark gradient panel with a pink light glowing from the bottom
+   * (like the "Decisions powered by data" card in the reference design).
+   */
+  .glow-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / 0.09);
+    background:
+      radial-gradient(ellipse 70% 55% at 50% 115%, rgb(222 150 200 / 0.55), transparent 70%),
+      radial-gradient(ellipse 60% 45% at 85% -10%, rgb(160 100 150 / 0.35), transparent 70%),
+      linear-gradient(180deg, #2b2029 0%, #161116 100%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.08),
+      0 30px 80px rgb(0 0 0 / 0.45);
+  }
+
+  /* Cards and panels fade + slide in */
+  .rise {
+    animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  /*
+   * Buttons — pill shaped. Lift on hover, press in on click, ring on keyboard focus.
+   * Use:  className="btn btn-primary"  (or btn-dark / btn-outline / btn-ghost)
+   */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0 1.25rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 180ms ease,
+      filter 180ms ease,
+      background-color 180ms ease,
+      border-color 180ms ease;
+  }
+  .btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+    box-shadow: 0 10px 28px rgb(197 139 182 / 0.25);
+  }
+  .btn:active:not(:disabled) {
+    transform: translateY(0) scale(0.95);
+    filter: brightness(0.94);
+    box-shadow: 0 2px 8px rgb(197 139 182 / 0.25);
+    transition-duration: 60ms;
+  }
+  .btn:focus-visible {
+    outline: 3px solid #e0a9cf;
+    outline-offset: 2px;
+  }
+  .btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  /* glowing mauve pill */
+  .btn-primary {
+    background: linear-gradient(180deg, #d59cc4 0%, #9c5e8a 100%);
+    color: #ffffff;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.35),
+      0 6px 22px rgb(197 139 182 / 0.3);
+  }
+  /* light pill (stands out on the dark background) */
+  .btn-dark {
+    background: #f7eff5;
+    color: #140f13;
+  }
+  /* dark pill with a thin light border */
+  .btn-outline {
+    background: rgb(255 255 255 / 0.03);
+    color: var(--color-ink);
+    border: 1px solid var(--color-line-strong);
+  }
+  .btn-outline:hover:not(:disabled) {
+    border-color: rgb(255 255 255 / 0.32);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-muted);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: rgb(255 255 255 / 0.06);
+    color: var(--color-ink);
+    box-shadow: none;
+  }
+  .btn-lg {
+    min-height: 3.5rem;
+    padding: 0 1.75rem;
+    font-size: 1.0625rem;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    animation: none;
+  }
+}
+
+/* Saving as PDF: switch to light colours so it prints cleanly */
+@media print {
+  :root {
+    color-scheme: light;
+    --color-ground: #ffffff;
+    --color-surface: #ffffff;
+    --color-soft: #f7f7fa;
+    --color-tab: #f0f0f4;
+    --color-line: #e3e3ea;
+    --color-line-strong: #cfcfd9;
+    --color-track: #ececf2;
+    --color-ink: #141016;
+    --color-muted: #4a4450;
+    --color-subtle: #6a6370;
+    --color-brand: #8e4f7c;
+    --color-brand-dark: #6e3a60;
+    --color-brand-soft: #f6e8f1;
+    --color-good: #12a26b;
+    --color-good-soft: #e3f7ee;
+    --color-good-ink: #0b7049;
+    --color-warn: #d18a1f;
+    --color-warn-soft: #fff1db;
+    --color-warn-ink: #8a4500;
+    --color-bad: #e03131;
+    --color-bad-soft: #ffe3e3;
+    --color-bad-ink: #a61e1e;
+  }
+  body {
+    background: #ffffff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
