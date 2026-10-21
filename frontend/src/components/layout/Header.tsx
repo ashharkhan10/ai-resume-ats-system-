@@ -4,12 +4,19 @@
  * Sticks to the top with a frosted-glass look. Hidden when printing.
  */
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Logo } from "@/components/ui/Logo";
 import { logout } from "@/lib/auth";
 import { useUser } from "@/lib/useUser";
 
 export function Header() {
   const { user, ready } = useUser();
+  const router = useRouter();
+
+  function handleLogout() {
+    logout();
+    router.push("/login");
+  }
 
   return (
     <header className="sticky top-0 z-20 mb-4 border-b border-line bg-ground/60 backdrop-blur-lg print:hidden">
@@ -21,7 +28,7 @@ export function Header() {
               <Link href="/versions" className="btn btn-ghost">
                 My versions
               </Link>
-              <button onClick={logout} className="btn btn-ghost">
+              <button onClick={handleLogout} className="btn btn-ghost">
                 Log out
               </button>
             </>
