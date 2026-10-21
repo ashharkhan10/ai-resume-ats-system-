@@ -48,6 +48,7 @@ export function ResultsView({ report, readOnly = false }: Props) {
           <span className="rounded-full px-3 py-1 text-sm font-bold text-[#140f13]" style={{ background: color }}>
             {report.rating}
           </span>
+          {report.band && <span className="text-center text-sm font-semibold text-muted">{report.band}</span>}
         </div>
 
         <div className="flex flex-col gap-4">

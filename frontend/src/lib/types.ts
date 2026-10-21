@@ -4,7 +4,15 @@
 export type Level = "High" | "Medium" | "Low";
 
 export type CategoryScore = { id: string; label: string; score: number; weight: number };
-export type KeywordMatch = { matched: string[]; missing: string[]; match_pct: number };
+export type KeywordMatch = {
+  matched: string[];
+  missing: string[];
+  match_pct: number;
+  listed_only?: string[]; // matched, but never shown in a recent project/job
+};
+/** One line of a checklist. ok = null means "couldn't check". */
+export type Check = { id: string; label: string; ok: boolean | null; detail: string };
+export type LanguageIssue = { text: string; fix: string; type: string };
 export type SkillProof = { name: string; proof: string | null };
 export type Issue = { id: string; level: Level; title: string; detail: string };
 export type Rewrite = { before: string; after: string; why: string };
@@ -14,6 +22,7 @@ export type RoleFit = { score: number | null; verdict: string; gaps: string[] };
 export type AnalysisReport = {
   score: number;
   rating: string;
+  band?: string; // "Likely shortlisted", "Borderline", "Likely filtered out"
   summary: string;
   target: { kind: "job" | "role" | "none"; title: string };
   categories: CategoryScore[];
@@ -24,6 +33,9 @@ export type AnalysisReport = {
   rewrites: Rewrite[];
   strengths: string[];
   stats: { word_count: number; bullets: number; quantified_bullets: number };
+  ats_checks?: Check[];
+  requirements?: Check[];
+  language_issues?: LanguageIssue[];
   // Set once the report is saved
   id: string;
   file_name: string;

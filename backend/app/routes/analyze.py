@@ -18,6 +18,7 @@ from app.schemas.analysis import AnalysisReport, TargetKind
 from app.services.ai_reader import ReadingFailed, read_with_ai
 from app.services.analyzer import build_report
 from app.services.history import report_of, save_analysis
+from app.services.layout_check import inspect_layout
 from app.services.text_extraction import ResumeFileError, extract_text
 
 router = APIRouter(tags=["analyze"])
@@ -32,7 +33,8 @@ def analyze(  # plain "def": FastAPI runs it in a thread, so slow AI calls don't
     db: Session = Depends(get_db),
 ):
     try:
-        text = extract_text(resume.file.read(), resume.filename or "")
+        file_bytes = resume.file.read()
+        text = extract_text(file_bytes, resume.filename or "")
     except ResumeFileError as error:
         raise HTTPException(422, detail=str(error)) from error
 
@@ -45,7 +47,8 @@ def analyze(  # plain "def": FastAPI runs it in a thread, so slow AI calls don't
     if target_role.strip() and not reading.target.title:
         reading.target.title = target_role.strip()
 
-    report = build_report(text, reading, _target_kind(job_description, target_role))
+    layout = inspect_layout(file_bytes, resume.filename or "")
+    report = build_report(text, reading, _target_kind(job_description, target_role), layout)
     row = save_analysis(db, user, report, resume.filename or "resume", text, job_description)
     return report_of(row)
 

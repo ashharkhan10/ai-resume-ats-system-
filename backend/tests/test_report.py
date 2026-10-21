@@ -18,8 +18,10 @@ def test_report_with_a_job():
     assert report.target.title == "Frontend Developer"
     assert report.keywords.missing == ["TypeScript"]
     assert [c.id for c in report.categories] == [
-        "keywords", "role_fit", "content", "formatting", "skill_proof", "ats_friendly"
+        "keywords", "role_fit", "requirements", "content", "formatting", "skill_proof", "ats_friendly"
     ]
+    assert report.band in ("Likely shortlisted", "Borderline", "Likely filtered out")
+    assert [c.id for c in report.ats_checks][:2] == ["sections", "creative"]
     assert sum(c.weight for c in report.categories) == 100
     assert report.stats.bullets == 3
     assert report.stats.quantified_bullets == 2

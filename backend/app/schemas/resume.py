@@ -26,7 +26,17 @@ class Experience(Lenient):
     title: str = ""
     company: str = ""
     months: int = 0
+    end_year: int | None = None  # None = current job (or unknown)
     bullets: list[str] = []
+
+    @field_validator("end_year", mode="before")
+    @classmethod
+    def sensible_year(cls, value):
+        try:
+            year = int(value)
+        except (TypeError, ValueError):
+            return None  # "Present", "", ... → current
+        return year if 1950 <= year <= 2100 else None
 
     @field_validator("months", mode="before")
     @classmethod
@@ -76,6 +86,19 @@ class TargetData(Lenient):
     title: str = ""
     required_skills: list[str] = []
     preferred_skills: list[str] = []
+    min_years: float | None = None  # years of experience asked for (None = not stated)
+    seniority: str = ""  # "intern", "entry", "mid", "senior" or ""
+    education: str = ""  # e.g. "Bachelor's in Computer Science or related"
+    certifications: list[str] = []  # certifications the job requires
+
+    @field_validator("min_years", mode="before")
+    @classmethod
+    def sensible_years(cls, value):
+        try:
+            years = float(value)
+        except (TypeError, ValueError):
+            return None
+        return years if 0 < years <= 30 else None
 
 
 class Fit(Lenient):
@@ -87,6 +110,7 @@ class Fit(Lenient):
     score: int | None = None  # 0–100
     verdict: str = ""  # one honest sentence
     gaps: list[str] = []  # the biggest things missing for this role
+    education_met: bool | None = None  # does the degree meet the job's education need?
 
     @field_validator("score", mode="before")
     @classmethod
@@ -95,6 +119,14 @@ class Fit(Lenient):
             return max(0, min(100, int(value)))
         except (TypeError, ValueError):
             return None
+
+
+class LanguageIssue(Lenient):
+    """A spelling or grammar mistake. 'text' must be copied exactly from the resume."""
+
+    text: str = ""
+    fix: str = ""
+    type: str = "spelling"  # "spelling" or "grammar"
 
 
 class Rewrite(Lenient):
@@ -111,3 +143,4 @@ class AIReading(Lenient):
     fit: Fit = Fit()
     rewrites: list[Rewrite] = []
     strengths: list[str] = []
+    language_issues: list[LanguageIssue] = []

@@ -5,6 +5,8 @@ import type { AnalysisReport } from "@/lib/types";
 
 export function KeywordsTab({ report }: { report: AnalysisReport }) {
   const { keywords, skills } = report;
+  const listedOnly = keywords?.listed_only ?? [];
+  const used = (keywords?.matched ?? []).filter((k) => !listedOnly.includes(k));
 
   return (
     <div className="flex flex-col gap-6">
@@ -14,7 +16,16 @@ export function KeywordsTab({ report }: { report: AnalysisReport }) {
             <h2 className="text-lg font-bold">Job match: {keywords.match_pct}%</h2>
             <p className="mb-4 text-sm text-muted">Add the missing ones — only if you really have them.</p>
             <ChipGroup title={`Missing (${keywords.missing.length})`} items={keywords.missing} className="bg-bad-soft text-bad-ink" />
-            <ChipGroup title={`Matched (${keywords.matched.length})`} items={keywords.matched} className="bg-good-soft text-good-ink" />
+            <ChipGroup
+              title={`Used in your work (${used.length})`}
+              items={used}
+              className="bg-good-soft text-good-ink"
+            />
+            <ChipGroup
+              title={`Only listed — not shown in a recent project or job (${listedOnly.length})`}
+              items={listedOnly}
+              className="bg-warn-soft text-warn-ink"
+            />
           </>
         ) : (
           <p className="text-muted">

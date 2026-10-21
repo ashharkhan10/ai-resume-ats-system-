@@ -3,6 +3,7 @@
  */
 import type { AnalysisReport, RoleFit } from "@/lib/types";
 import { levelClasses, scoreColor } from "@/lib/score";
+import { Checklist } from "./Checklist";
 
 export function OverviewTab({ report }: { report: AnalysisReport }) {
   const { issues, strengths, stats } = report;
@@ -32,6 +33,29 @@ export function OverviewTab({ report }: { report: AnalysisReport }) {
 
       <div className="flex flex-col gap-6">
         {report.fit && report.fit.score !== null && <RoleFitCard fit={report.fit} title={report.target.title} />}
+
+        {report.requirements && report.requirements.length > 0 && (
+          <Checklist title="Job requirements" checks={report.requirements} />
+        )}
+
+        {report.ats_checks && report.ats_checks.length > 0 && (
+          <Checklist title="Can an ATS read your resume?" checks={report.ats_checks} />
+        )}
+
+        {report.language_issues && report.language_issues.length > 0 && (
+          <section className="rounded-3xl border border-line bg-surface p-6">
+            <h2 className="mb-3 text-lg font-bold">Spelling &amp; grammar</h2>
+            <ul className="flex flex-col gap-2 text-sm">
+              {report.language_issues.map((issue) => (
+                <li key={issue.text}>
+                  <span className="text-bad-ink line-through">{issue.text}</span>
+                  <span className="text-subtle"> → </span>
+                  <span className="font-medium text-good-ink">{issue.fix}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {strengths.length > 0 && (
           <section className="rounded-3xl border border-line bg-surface p-6">

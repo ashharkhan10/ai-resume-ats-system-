@@ -5,19 +5,27 @@ This part has no AI calls — only plain, testable Python.
 The AI call happens before this, in ai_reader.py.
 
 With a job or role, the report is judged on RELEVANCE first:
-keyword match + role fit decide most of the score, and cap it
+keyword match + role fit + requirements decide most of the score, and cap it
 (see scoring/overall.py). Without a target, only general quality counts.
 """
 
+from datetime import datetime
+
 from app.schemas.analysis import AnalysisReport, Stats, Target, TargetKind
-from app.schemas.resume import AIReading
+from app.schemas.resume import AIReading, ResumeData
+from app.services.ats_checks import build_ats_checks
+from app.services.bullet_checks import check_bullets, quality_penalty
 from app.services.issues import build_issues
 from app.services.keyword_match import match_keywords
+from app.services.language import real_language_issues
+from app.services.layout_check import LayoutInfo
+from app.services.requirements import check_requirements, score_requirements
 from app.services.scoring.ats_friendly import score_ats_friendly
 from app.services.scoring.content import is_quantified, score_content
 from app.services.scoring.formatting import score_formatting
-from app.services.scoring.overall import MISMATCH_SUMMARY, build_categories, overall_score, rate
+from app.services.scoring.overall import MISMATCH_SUMMARY, band, build_categories, overall_score, rate
 from app.services.scoring.skill_proof import find_proof, score_skill_proof
+from app.services.sections import detect_sections
 
 # With no job or role, the keyword score comes from how many skills are listed.
 SKILLS_FOR_FULL_MARKS = 12
@@ -25,29 +33,53 @@ SKILLS_FOR_FULL_MARKS = 12
 # Below this relevance the summary says plainly that it's not a match.
 MISMATCH_BELOW = 45
 
+# Jobs that ended more than this many years ago don't count as "recent" use of a skill.
+RECENT_YEARS = 3
+
 MAX_REWRITES = 5
 MAX_STRENGTHS = 4
 
 
-def build_report(text: str, reading: AIReading, target_kind: TargetKind) -> AnalysisReport:
+def recent_work_text(resume: ResumeData) -> str:
+    """Bullets + technologies from projects and from jobs that are current or recent."""
+    oldest_recent = datetime.now().year - RECENT_YEARS
+    parts = []
+    for job in resume.experience:
+        if job.end_year is None or job.end_year >= oldest_recent:
+            parts += [job.title, *job.bullets]
+    for project in resume.projects:
+        parts += [project.title, *project.technologies, *project.bullets]
+    return "\n".join(parts)
+
+
+def build_report(
+    text: str,
+    reading: AIReading,
+    target_kind: TargetKind,
+    layout: LayoutInfo | None = None,
+) -> AnalysisReport:
     resume = reading.resume
     bullets = resume.all_bullets()
-    has_target = target_kind != "none"
+    layout = layout or LayoutInfo()
+    sections = detect_sections(text)
+    bullet_findings = check_bullets(bullets)
 
     keywords = None
-    if has_target:
+    if target_kind != "none":
         keywords = match_keywords(
-            text, resume.skills, reading.target.required_skills, reading.target.preferred_skills
+            text, resume.skills, reading.target.required_skills, reading.target.preferred_skills,
+            used_text=recent_work_text(resume),
         )
-    has_target = has_target and keywords is not None
+    has_target = keywords is not None
 
     proofs = find_proof(resume)
+    requirements = check_requirements(reading, text) if has_target else []
 
     scores = {
-        "content": score_content(bullets),
+        "content": max(0, score_content(bullets) - quality_penalty(bullet_findings)),
         "formatting": score_formatting(resume),
         "skill_proof": score_skill_proof(proofs),
-        "ats_friendly": score_ats_friendly(text, resume),
+        "ats_friendly": score_ats_friendly(text, resume, layout, sections),
     }
 
     fit = None
@@ -58,6 +90,7 @@ def build_report(text: str, reading: AIReading, target_kind: TargetKind) -> Anal
         fit_score = fit.score if fit.score is not None else keywords.match_pct
         scores["keywords"] = keywords.match_pct
         scores["role_fit"] = fit_score
+        scores["requirements"] = score_requirements(requirements)
         relevance = round((keywords.match_pct + fit_score) / 2)
     else:
         scores["keywords"] = round(min(1.0, len(resume.skills) / SKILLS_FOR_FULL_MARKS) * 100)
@@ -68,16 +101,23 @@ def build_report(text: str, reading: AIReading, target_kind: TargetKind) -> Anal
     if relevance is not None and relevance < MISMATCH_BELOW:
         summary = MISMATCH_SUMMARY.format(title=reading.target.title or "this role")
 
+    language_issues = real_language_issues(reading.language_issues, text)
+
     return AnalysisReport(
         score=score,
         rating=rating,
+        band=band(score, has_target),
         summary=summary,
         target=Target(kind=target_kind, title=reading.target.title),
         categories=categories,
         keywords=keywords,
         fit=fit,
         skills=proofs,
-        issues=build_issues(resume, text, keywords, proofs, fit, reading.target.title),
+        issues=build_issues(
+            resume, text, keywords, proofs, fit, reading.target.title,
+            layout=layout, sections=sections, bullets=bullet_findings,
+            requirements=requirements, language=language_issues,
+        ),
         rewrites=reading.rewrites[:MAX_REWRITES],
         strengths=reading.strengths[:MAX_STRENGTHS],
         stats=Stats(
@@ -85,4 +125,7 @@ def build_report(text: str, reading: AIReading, target_kind: TargetKind) -> Anal
             bullets=len(bullets),
             quantified_bullets=sum(is_quantified(b) for b in bullets),
         ),
+        ats_checks=build_ats_checks(text, layout, sections),
+        requirements=requirements,
+        language_issues=language_issues,
     )

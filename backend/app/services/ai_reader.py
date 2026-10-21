@@ -27,7 +27,7 @@ Read the resume (and the job, if given) and reply with JSON ONLY, in exactly thi
     "links": ["LinkedIn / GitHub / portfolio URLs"],
     "summary": "the summary/objective paragraph, copied as written, or empty",
     "skills": ["every skill listed anywhere"],
-    "experience": [{"title": "", "company": "", "months": 0, "bullets": ["copied exactly"]}],
+    "experience": [{"title": "", "company": "", "months": 0, "end_year": null, "bullets": ["copied exactly"]}],
     "projects": [{"title": "", "technologies": [""], "bullets": ["copied exactly"]}],
     "education": [{"degree": "", "institution": "", "year": ""}],
     "certifications": [""]
@@ -35,20 +35,33 @@ Read the resume (and the job, if given) and reply with JSON ONLY, in exactly thi
   "target": {
     "title": "job title",
     "required_skills": ["must-have skills and tools, short names like 'React', 'SQL'"],
-    "preferred_skills": ["nice-to-have skills"]
+    "preferred_skills": ["nice-to-have skills"],
+    "min_years": null,
+    "seniority": "intern | entry | mid | senior",
+    "education": "degree the job asks for, or empty",
+    "certifications": ["certifications the job REQUIRES, or empty"]
   },
   "fit": {
     "score": 0,
     "verdict": "one honest sentence on how well this candidate fits the target",
-    "gaps": ["the 2-4 most important things missing for this target"]
+    "gaps": ["the 2-4 most important things missing for this target"],
+    "education_met": null
   },
   "rewrites": [{"before": "a weak bullet copied exactly", "after": "the improved bullet", "why": "short reason"}],
-  "strengths": ["short, specific things this resume does well"]
+  "strengths": ["short, specific things this resume does well"],
+  "language_issues": [{"text": "wrong words copied exactly", "fix": "corrected words", "type": "spelling | grammar"}]
 }
 
 Rules:
 - Copy bullets EXACTLY as written. Do not invent experience, numbers or skills.
-- "months": the length of each job in months (0 if unknown).
+- "months": the length of each job or internship in months (0 if unknown).
+- "end_year": the year the job ended as a number, or null if it is current.
+- target.min_years: the years of experience the job asks for as a number (e.g. 2), or null if not stated.
+  For a target ROLE (no job posting) use null, and seniority "entry".
+- target.education / certifications: only what the job clearly requires. Empty if not stated.
+- fit.education_met: true/false if the job states an education need, otherwise null.
+- language_issues: only REAL spelling or grammar mistakes, max 8. "text" must be copied exactly
+  from the resume. Ignore tech names, abbreviations and Indian/British spellings. Empty if none.
 - rewrites: pick the 3-5 weakest bullets. Make each "after" start with a strong action verb,
   stay truthful to the original, and add a measurable result using a placeholder like
   [X%] or [N users] when the original has no number.

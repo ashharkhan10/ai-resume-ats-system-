@@ -2,7 +2,7 @@
 Combines the category scores into one overall score (0–100).
 
 Two sets of weights:
-  - with a job or role: being RELEVANT matters most (keywords + role fit = 60%)
+  - with a job or role: being RELEVANT matters most (keywords + role fit + requirements = 60%)
   - without a target: only general resume quality is judged
 
 Relevance cap: a well-written resume for the wrong field must still score low.
@@ -14,8 +14,9 @@ where relevance = average of keyword match and role fit.
 from app.schemas.analysis import CategoryScore
 
 WEIGHTS_WITH_TARGET = {
-    "keywords": 35,
-    "role_fit": 25,
+    "keywords": 30,
+    "role_fit": 20,
+    "requirements": 10,
     "content": 15,
     "formatting": 10,
     "skill_proof": 5,
@@ -33,6 +34,7 @@ WEIGHTS_NO_TARGET = {
 LABELS = {
     "keywords": "Keywords",
     "role_fit": "Role fit",
+    "requirements": "Requirements",
     "content": "Content",
     "formatting": "Formatting",
     "skill_proof": "Skill proof",
@@ -49,6 +51,10 @@ RATINGS = [
     (50, "Fair", "Decent base, but several things are holding it back."),
     (0, "Needs work", "Important gaps — start with the high-priority fixes below."),
 ]
+
+# What would likely happen to this application (lowest score, label)
+BANDS_WITH_TARGET = [(75, "Likely shortlisted"), (55, "Borderline"), (0, "Likely filtered out")]
+BANDS_NO_TARGET = [(75, "Ready to apply"), (55, "Needs polish"), (0, "Needs major work")]
 
 MISMATCH_SUMMARY = "This resume isn't a match for {title} yet — see the gaps below."
 
@@ -74,3 +80,10 @@ def rate(score: int) -> tuple[str, str]:
         if score >= lowest:
             return rating, summary
     return RATINGS[-1][1], RATINGS[-1][2]
+
+
+def band(score: int, has_target: bool) -> str:
+    for lowest, label in BANDS_WITH_TARGET if has_target else BANDS_NO_TARGET:
+        if score >= lowest:
+            return label
+    return ""
